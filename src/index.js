@@ -3,14 +3,14 @@
 const commands = require('./commands.js');
 const output = require('./output.js');
 const constants = require('./constants.js');
-const validation = require('./validation.js');
+const lineReader = require('line-reader');
 
 /**
  * Start the application by reading user input
  * First input needs to contain PLACE 0-4,0-4,cardinalPoints which will be validated by regex
  * Next input can be either PLACE, LEFT, RIGHT, REPORT or MOVE
  */
-const readInput = () => {
+const readInput = (fileName) => {
   const stdin = process.openStdin();
   let robot = {
     xCoordinate: constants.board.startingX,
@@ -19,32 +19,26 @@ const readInput = () => {
   };
   let firstInput = true;
   
-  stdin.addListener('data', function(input) {
-    let command = input.toString().trim().toUpperCase();
-    if (command.includes('HELP')) {
-      output.showHelp();
-    } else {
-      let isValid = validation.validateInput(firstInput, command);
-      if (isValid) {
-        firstInput = false;
-        if (command.includes(constants.commands.PLACE)) {
-          const [xAxis, yAxis, direction, validCoordinate] = commands.placeRobot(command);
-          if (validCoordinate) {
-            robot.xCoordinate = xAxis;
-            robot.yCoordinate = yAxis;
-            robot.facingDirection = direction;
-          }
-        } else {
-          robot = commands.changeLocation(command, robot);
-        }
+  if (fileName) {
+    lineReader.eachLine(fileName, (line) => {
+      [firstInput, robot] = commands.executeCommand(firstInput, line, robot);
+    });
+  } else {
+    stdin.addListener('data', (input) => {
+      let command = input.toString().trim().toUpperCase();
+      if (command.includes('HELP')) {
+        output.showHelp();
+      } else {
+        [firstInput, robot] = commands.executeCommand(firstInput, command, robot);
       }
-    }
-  });
+    });
+  }
 };
 
 const run = () => {
-  output.initialise();
-  readInput();
+  const fileName = process.argv[2];
+  !fileName && output.initialise();
+  readInput(fileName);
 };
 
 run();

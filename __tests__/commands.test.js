@@ -48,5 +48,40 @@ describe('Commands test:', () => {
     commands.changeLocation(command, robot);
     expect(result).toEqual(expectedResult);
   });
+  
+  it('Function: turnLeft - Valid output', () => {
+    const cardinalPoints = ['EAST', 'SOUTH', 'WEST', 'NORTH'];
+    const expectedResults = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+    let count = 0;
+    cardinalPoints.forEach(direction => {
+      let result = commands.turnLeft(direction);
+      expect(result).toBe(expectedResults[count]);
+      count ++;
+    });  
+  });
 
+  it('Function: turnRight - Valid output', () => {
+    const cardinalPoints = ['EAST', 'SOUTH', 'WEST', 'NORTH'];
+    const expectedResults = ['SOUTH', 'WEST', 'NORTH', 'EAST'];
+    let count = 0;
+    cardinalPoints.forEach(direction => {
+      let result = commands.turnRight(direction);
+      expect(result).toBe(expectedResults[count]);
+      count ++;
+    });  
+  });
+
+  it('Function: move - Valid output', () => {
+    let result = commands.move(1, 1, 'NORTH');
+    expect(result).toEqual([1, 2]);
+
+    result = commands.move(1, 1, 'SOUTH');
+    expect(result).toEqual([1, 0]);
+
+    result = commands.move(1, 1, 'EAST');
+    expect(result).toEqual([2, 1]);
+
+    result = commands.move(1, 1, 'WEST');
+    expect(result).toEqual([0, 1]);
+  });
 });

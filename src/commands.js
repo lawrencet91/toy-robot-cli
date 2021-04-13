@@ -1,4 +1,3 @@
-const directions = require('./directions.js');
 const logger = require('./logger.js');
 const constants = require('./constants.js');
 const validation = require('./validation');
@@ -14,20 +13,20 @@ const changeLocation = (command, robot) => {
   let {xCoordinate, yCoordinate, facingDirection} = robot;
   switch (command) {    
     case constants.commands.MOVE:
-      const [newX, newY] = directions.move(parseInt(xCoordinate), parseInt(yCoordinate), facingDirection);
+      const [newX, newY] = move(parseInt(xCoordinate), parseInt(yCoordinate), facingDirection);
       robot.xCoordinate = newX;
       robot.yCoordinate = newY;
       break;
     case constants.commands.LEFT:
-      robot.facingDirection = directions.turnLeft(facingDirection);
+      robot.facingDirection = turnLeft(facingDirection);
       break;
     case constants.commands.RIGHT:
-      robot.facingDirection = directions.turnRight(facingDirection);
+      robot.facingDirection = turnRight(facingDirection);
       break;
     case constants.commands.REPORT:
       const location = [xCoordinate, yCoordinate, facingDirection].join();
       if (process.env.NODE_ENV !== 'test') {
-        logger.success(`\nCurrent position of the toy robot: ${location}\n`);
+        logger.success(`Current position of the toy robot: ${location}\n`);
       }
   }
 
@@ -53,9 +52,82 @@ const placeRobot = (command) => {
   return [xAxis, yAxis, direction, validCoordinate];
 };
 
+const executeCommand = (firstInput, command, robot) => {
+  let isValid = validation.validateInput(firstInput, command);
+  if (!isValid) {
+    return;
+  }
+  firstInput = false;
+  if (command.includes(constants.commands.PLACE)) {
+    const [xAxis, yAxis, direction, validCoordinate] = placeRobot(command);
+    if (validCoordinate) {
+      robot.xCoordinate = xAxis;
+      robot.yCoordinate = yAxis;
+      robot.facingDirection = direction;
+    }
+  } else {
+    robot = changeLocation(command, robot);
+  }
+  return [firstInput, robot];
+};
+
+/**
+ * Action - turn left
+ *
+ * @param {direction} Direction of the robot
+ * @return {direction} New direction after it turns left
+ */
+const turnLeft = (direction) => {
+  return constants.turnLeft[direction];
+}
+
+/**
+ * Action - turn right
+ *
+ * @param {direction} Direction of the robot
+ * @return {direction} New direction after it turns right
+ */
+const turnRight = (direction) => {
+  return constants.turnRight[direction];
+}
+
+/**
+ * Action - move
+ *
+ * @param {x} The x-axis of the robot
+ * @param {y} The y-axis of the robot
+ * @param {currentDirection} Cardinal point of the robot
+ * @return {[x, y]} New x and y axis
+ */
+const move = (x, y, currentDirection) => {
+  let tempX, tempY, isValid;
+  switch (currentDirection) {
+    case 'NORTH':
+      tempY = y + 1;
+      isValid = validation.isValidCoordinate(x, tempY);
+      return isValid ? [x, tempY] : [x, y];
+    case 'SOUTH':
+      tempY = y - 1;
+      isValid = validation.isValidCoordinate(x, tempY);
+      return isValid ? [x, tempY] : [x, y];
+    case 'WEST':
+      tempX = x - 1;
+      isValid = validation.isValidCoordinate(tempX, y);
+      return isValid ? [tempX, y] : [x, y];
+    case 'EAST':
+      tempX = x + 1;
+      isValid = validation.isValidCoordinate(tempX, y);
+      return isValid ? [tempX, y] : [x, y];
+  }
+};
+
 const exportFunctions = {
   changeLocation,
-  placeRobot
+  placeRobot,
+  executeCommand,
+  move,
+  turnLeft,
+  turnRight
 };
 
 module.exports = exportFunctions;
