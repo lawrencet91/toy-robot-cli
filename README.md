@@ -19,7 +19,8 @@ Install the npm dependencies
 1. cd into this folder's root folder and run npm install to install all project dependencies
 
 Running Toy Robot
-1. Run npm start in your command line at the project's root.
+1. Run npm start in your command line at the project's root or you can pass in a text file 
+   - npm start D:\PD\toy-robot-cli\src\test.txt
 
 Running the tests
 1. Run npm test in your command line at the project's root.
